@@ -3,7 +3,24 @@ import gql from "graphql-tag";
 const typeDefs = gql`
   type User {
     id: String
-    usernames: String
+    username: String
+  }
+
+  type LoginResponse {
+    accessToken: String
+    refreshToken: String
+    error: String
+  }
+
+  type CreateUsernameResponse {
+    success: Boolean
+    error: String
+  }
+
+  type RefreshTokenResponse {
+    accessToken: String
+    refreshToken: String
+    error: String
   }
 
   type Query {
@@ -11,12 +28,15 @@ const typeDefs = gql`
   }
 
   type Mutation {
+    login(userId: ID): LoginResponse
+  }
+
+  type Mutation {
     createUsername(username: String): CreateUsernameResponse
   }
 
-  type CreateUsernameResponse {
-    success: Boolean
-    error: String
+  type Mutation {
+    refreshToken(refreshTokenId: ID): RefreshTokenResponse
   }
 `;
 
