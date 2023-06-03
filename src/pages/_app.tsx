@@ -11,11 +11,11 @@ export default function App({
 }: AppProps) {
   return (
     <ApolloProvider client={client}>
-    <SessionProvider session={session}>
-      <ChakraProvider theme={theme}>
-        <Component {...pageProps} />
-      </ChakraProvider>
-    </SessionProvider>
+      <SessionProvider session={session}>
+        <ChakraProvider theme={theme}>
+          <Component {...pageProps} />
+        </ChakraProvider>
+      </SessionProvider>
     </ApolloProvider>
   );
 }
