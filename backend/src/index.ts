@@ -31,6 +31,7 @@ const main = async () => {
   });
 
   const corsOptions = {
+    methods: ["GET", "POST", "OPTIONS"],
     origin: process.env.BASE_URL,
     credentials: true,
   };

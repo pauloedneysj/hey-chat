@@ -11,8 +11,8 @@ export interface CreateUserVariables {
 
 export interface LoginData {
   login: {
-    token?: string;
-    success?: boolean;
+    accessToken?: string;
+    refreshToken?: string;
     error?: string;
   };
 }

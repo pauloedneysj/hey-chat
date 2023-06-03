@@ -5,7 +5,7 @@ export const APP_SECRET = "secret";
 
 export const createToken = (id: string) => {
   return jwt.sign({ userId: id }, APP_SECRET, {
-    expiresIn: "20s",
+    expiresIn: "1h",
   });
 };
 

@@ -11,32 +11,27 @@ import { useEffect } from "react";
 export default function SignIn() {
   const { data: session } = useSession();
 
-  const [login, { data: loginResponse }] = useMutation<
-    LoginData,
-    LoginVariables
-  >(UserOperations.Mutations.login, {
-    onCompleted: (response) => {
-      const { error, success, token } = response.login;
+  const [login, { data: loginData }] = useMutation<LoginData, LoginVariables>(
+    UserOperations.Mutations.login,
+    {
+      onCompleted: (data) => {
+        const { error, accessToken, refreshToken } = data.login;
 
-      if (token && success) {
-        localStorage.setItem("graphql-token", token);
-      } else {
-        console.error(error);
-      }
-    },
-    onError: (error) => console.error(error),
-  });
+        if (accessToken && refreshToken) {
+          localStorage.setItem("graphql-token", accessToken);
+        } else {
+          console.error(error);
+        }
+      },
+      onError: (error) => console.error(error),
+    }
+  );
 
   useEffect(() => {
-    const token = localStorage.getItem("graphql-token");
-
-    if (session && !token) {
-      console.log(token);
+    if (session?.user && !loginData?.login) {
       login({ variables: { userId: session.user.id } });
-    } else {
-      console.log(loginResponse?.login);
     }
-  }, [loginResponse?.login, login, session]);
+  }, [login, loginData?.login, session?.user]);
 
   // TODO: this reloads the session
   function reloadSession() {}

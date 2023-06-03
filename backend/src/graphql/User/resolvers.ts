@@ -6,6 +6,7 @@ import {
   RefreshTokenResponse,
 } from "../../util/types";
 import dayjs from "dayjs";
+import { ObjectId } from "bson";
 
 const resolvers = {
   Query: {
@@ -17,7 +18,9 @@ const resolvers = {
       const { username } = args;
       const { prisma, userId } = context;
 
-      if (!userId) return console.error("Not authenticated");
+      if (!userId) {
+        throw new Error("Not authenticated");
+      }
 
       const users = await prisma.user.findMany({
         where: { username },
@@ -38,7 +41,6 @@ const resolvers = {
     ): Promise<LoginResponse> => {
       const { prisma } = context;
       const { userId } = args;
-      const expiresIn = dayjs().add(15, "second").unix();
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -46,11 +48,15 @@ const resolvers = {
 
       if (!user) return { error: "User not found" };
 
+      const newObjectId = new ObjectId();
+      const expiresIn = dayjs().add(15, "second").unix();
+
       try {
         const accessToken = createToken(user.id);
         const refreshToken = await prisma.refreshToken.create({
           data: {
-            userId,
+            id: newObjectId.toString(),
+            userId: user.id,
             expiresIn,
           },
         });
@@ -141,7 +147,7 @@ const resolvers = {
       }
     },
   },
-  // Subscription: {},
+  // TODO: Subscription: {},
 };
 
 export default resolvers;

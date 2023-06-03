@@ -6,8 +6,8 @@ const UserOperations = {
     login: gql`
       mutation Login($userId: ID!) {
         login(userId: $userId) {
-          token
-          success
+          accessToken
+          refreshToken
           error
         }
       }
@@ -21,7 +21,7 @@ const UserOperations = {
       }
     `,
   },
-  Subscription: {},
+  // TODO: Subscription: {},
 };
 
 export default UserOperations;
