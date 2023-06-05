@@ -1,5 +1,6 @@
-import UserTypeDefs from './User/typeDefs';
+import UserTypeDefs from "./User/typeDefs";
+import ConversationTypeDefs from "./Conversation/typeDefs";
 
-const typeDefs = [UserTypeDefs];
+const typeDefs = [UserTypeDefs, ConversationTypeDefs];
 
 export default typeDefs;
