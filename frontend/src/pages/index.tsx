@@ -7,6 +7,7 @@ import { useMutation } from "@apollo/client";
 import UserOperations from "../graphql/operations/user";
 import { LoginData, LoginVariables } from "../utils/types";
 import { useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function SignIn() {
   const { data: session } = useSession();
@@ -15,15 +16,10 @@ export default function SignIn() {
     UserOperations.Mutations.login,
     {
       onCompleted: (data) => {
-        const { error, accessToken, refreshToken } = data.login;
-
-        if (accessToken && refreshToken) {
-          localStorage.setItem("graphql-token", accessToken);
-        } else {
-          console.error(error);
-        }
+        const { accessToken } = data.login;
+        localStorage.setItem("graphql-token", accessToken);
       },
-      onError: (error) => console.error(error),
+      onError: (error) => toast.error(error.message),
     }
   );
 
@@ -39,10 +35,11 @@ export default function SignIn() {
   return (
     <Box>
       {session?.user?.username ? (
-        <Chat />
+        <Chat session={session} />
       ) : (
         <Auth session={session} reloadSession={reloadSession} />
       )}
+      <Toaster />
     </Box>
   );
 }
