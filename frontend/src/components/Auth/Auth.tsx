@@ -5,6 +5,7 @@ import { Button, Center, Image, Input, Stack, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 interface IAuthProps {
   session: Session | null;
@@ -13,28 +14,16 @@ interface IAuthProps {
 
 export default function Auth({ session, reloadSession }: IAuthProps) {
   const [username, setUsername] = useState("");
-
-  const [createUsername] = useMutation<CreateUserData, CreateUserVariables>(
-    UserOperations.Mutations.createUsername,
-    {
-      onCompleted: (data) => {
-        const { error, success } = data.createUsername;
-
-        if (success) window.location.reload();
-        else console.error(error);
-      },
-      onError: (error) => console.error(error),
-    }
-  );
+  const [createUsername, { loading }] = useMutation<
+    CreateUserData,
+    CreateUserVariables
+  >(UserOperations.Mutations.createUsername, {
+    onCompleted: () => window.location.reload(),
+    onError: (error) => toast.error(error.message),
+  });
 
   async function onSubmit() {
-    if (!username) return null;
-
-    try {
-      return await createUsername({ variables: { username } });
-    } catch (error) {
-      return console.log("onSubmir error", error);
-    }
+    await createUsername({ variables: { username } });
   }
 
   return (
@@ -42,30 +31,35 @@ export default function Auth({ session, reloadSession }: IAuthProps) {
       <Stack spacing={8} align="center">
         {session ? (
           <>
-            <Text fontSize="3xl">Crie um nome de usuário</Text>
+            <Text fontSize="3xl">Create a username</Text>
             <Input
-              placeholder="Coloque seu nome de usuário"
+              placeholder="Enter your username"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
             />
-            <Button width="100%" onClick={onSubmit}>
-              Salvar
+            <Button
+              width="100%"
+              onClick={onSubmit}
+              isLoading={loading}
+              isDisabled={!username}
+            >
+              Register
             </Button>
           </>
         ) : (
           <>
-            <Text>MessengerQL</Text>
+            <Text>heyChat</Text>
             <Button
               onClick={() => signIn("google")}
               leftIcon={
                 <Image
                   height="20px"
                   src="/images/google-logo.svg"
-                  alt="google logo"
+                  alt="google-logo"
                 />
               }
             >
-              Continue com o Google
+              Continue with Google
             </Button>
           </>
         )}
