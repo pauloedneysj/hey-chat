@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
 const typeDefs = gql`
-  type User {
+  type SearchedUser {
     id: String
     username: String
   }
@@ -9,22 +9,19 @@ const typeDefs = gql`
   type LoginResponse {
     accessToken: String
     refreshToken: String
-    error: String
   }
 
   type CreateUsernameResponse {
     success: Boolean
-    error: String
   }
 
   type RefreshTokenResponse {
     accessToken: String
     refreshToken: String
-    error: String
   }
 
   type Query {
-    searchUsers(username: String): [User]
+    searchUsers(username: String): [SearchedUser]
   }
 
   type Mutation {

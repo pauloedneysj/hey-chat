@@ -7,6 +7,8 @@ import {
 } from "../../util/types";
 import dayjs from "dayjs";
 import { ObjectId } from "bson";
+import { GraphQLError } from "graphql";
+import { User } from "@prisma/client";
 
 const resolvers = {
   Query: {
@@ -14,19 +16,28 @@ const resolvers = {
       _: any,
       args: { username: string },
       context: GraphQLContext
-    ) => {
-      const { username } = args;
+    ): Promise<User[]> => {
+      const { username: searchedUsername } = args;
       const { prisma, userId } = context;
 
       if (!userId) {
-        throw new Error("Not authenticated");
+        throw new GraphQLError("Not authenticated");
       }
 
-      const users = await prisma.user.findMany({
-        where: { username },
+      const myUser = await prisma.user.findUnique({
+        where: { id: userId },
         select: {
           username: true,
-          id: true,
+        },
+      });
+
+      const users = await prisma.user.findMany({
+        where: {
+          username: {
+            contains: searchedUsername,
+            not: myUser?.username,
+            mode: "insensitive",
+          },
         },
       });
 
@@ -46,7 +57,9 @@ const resolvers = {
         where: { id: userId },
       });
 
-      if (!user) return { error: "User not found" };
+      if (!user) {
+        throw new GraphQLError("User not found");
+      }
 
       const newObjectId = new ObjectId();
       const expiresIn = dayjs().add(15, "second").unix();
@@ -63,9 +76,7 @@ const resolvers = {
 
         return { accessToken, refreshToken: refreshToken.id };
       } catch (error: any) {
-        console.error("login Error =>", error);
-
-        return { error: error?.message };
+        throw new GraphQLError(error?.message);
       }
     },
     refreshToken: async (
@@ -80,7 +91,9 @@ const resolvers = {
         where: { id: refreshTokenId },
       });
 
-      if (!refreshToken) return { error: "Refresh token invalid" };
+      if (!refreshToken) {
+        throw new GraphQLError("Refresh token invalid");
+      }
 
       const refreshTokenExpired = dayjs().isAfter(
         dayjs.unix(refreshToken.expiresIn)
@@ -116,9 +129,7 @@ const resolvers = {
       const { prisma, userId } = context;
 
       if (!userId) {
-        return {
-          error: "Not authorized",
-        };
+        throw new GraphQLError("Not authorized");
       }
 
       try {
@@ -127,9 +138,7 @@ const resolvers = {
         });
 
         if (existingUser) {
-          return {
-            error: "Username already in use. Try another",
-          };
+          throw new GraphQLError("Username already in use. Try another");
         }
 
         await prisma.user.update({
@@ -141,9 +150,7 @@ const resolvers = {
 
         return { success: true };
       } catch (error: any) {
-        console.log("createUsername Error =>", error);
-
-        return { error: error?.message };
+        throw new GraphQLError(error?.message);
       }
     },
   },

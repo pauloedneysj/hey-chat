@@ -12,16 +12,13 @@ export interface JwtPayload {
 export interface LoginResponse {
   accessToken?: string;
   refreshToken?: string;
-  error?: string;
 }
 
 export interface RefreshTokenResponse {
   accessToken?: string;
   refreshToken?: string;
-  error?: string;
 }
 
 export interface CreateUsernameResponse {
   success?: boolean;
-  error?: string;
 }
