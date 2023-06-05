@@ -1,14 +1,22 @@
 import { gql } from "@apollo/client";
 
 const UserOperations = {
-  Queries: {},
+  Queries: {
+    searchUsers: gql`
+      query SearchUsers($username: String) {
+        searchUsers(username: $username) {
+          id
+          username
+        }
+      }
+    `,
+  },
   Mutations: {
     login: gql`
       mutation Login($userId: ID!) {
         login(userId: $userId) {
           accessToken
           refreshToken
-          error
         }
       }
     `,
@@ -16,7 +24,6 @@ const UserOperations = {
       mutation CreateUsername($username: String!) {
         createUsername(username: $username) {
           success
-          error
         }
       }
     `,
