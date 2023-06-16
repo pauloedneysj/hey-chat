@@ -61,11 +61,15 @@ const resolvers = {
         throw new GraphQLError("User not found");
       }
 
-      const newObjectId = new ObjectId();
-      const expiresIn = dayjs().add(15, "second").unix();
-
       try {
+        await prisma.refreshToken.deleteMany({
+          where: { userId: user.id },
+        });
+
         const accessToken = createToken(user.id);
+        const newObjectId = new ObjectId();
+        const expiresIn = dayjs().add(15, "second").unix();
+
         const refreshToken = await prisma.refreshToken.create({
           data: {
             id: newObjectId.toString(),
@@ -85,7 +89,11 @@ const resolvers = {
       context: GraphQLContext
     ): Promise<RefreshTokenResponse> => {
       const { refreshTokenId } = args;
-      const { prisma } = context;
+      const { prisma, userId } = context;
+
+      if (!userId) {
+        throw new GraphQLError("Not authenticated");
+      }
 
       const refreshToken = await prisma.refreshToken.findFirst({
         where: { id: refreshTokenId },
@@ -95,30 +103,34 @@ const resolvers = {
         throw new GraphQLError("Refresh token invalid");
       }
 
-      const refreshTokenExpired = dayjs().isAfter(
-        dayjs.unix(refreshToken.expiresIn)
-      );
+      try {
+        const refreshTokenExpired = dayjs().isAfter(
+          dayjs.unix(refreshToken.expiresIn)
+        );
 
-      const accessToken = createToken(refreshToken.userId);
+        const accessToken = createToken(refreshToken.userId);
 
-      if (refreshTokenExpired) {
-        await prisma.refreshToken.deleteMany({
-          where: { userId: refreshToken.userId },
-        });
+        if (refreshTokenExpired) {
+          await prisma.refreshToken.deleteMany({
+            where: { userId: refreshToken.userId },
+          });
 
-        const expiresIn = dayjs().add(15, "second").unix();
+          const expiresIn = dayjs().add(15, "second").unix();
 
-        const newRefreshToken = await prisma.refreshToken.create({
-          data: {
-            userId: refreshToken.userId,
-            expiresIn,
-          },
-        });
+          const newRefreshToken = await prisma.refreshToken.create({
+            data: {
+              userId: refreshToken.userId,
+              expiresIn,
+            },
+          });
 
-        return { accessToken, refreshToken: newRefreshToken.id };
+          return { accessToken, refreshToken: newRefreshToken.id };
+        }
+
+        return { accessToken };
+      } catch (error: any) {
+        throw new GraphQLError(error?.message);
       }
-
-      return { accessToken };
     },
     createUsername: async (
       _: any,
