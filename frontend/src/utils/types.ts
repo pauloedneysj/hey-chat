@@ -45,5 +45,5 @@ export interface CreateConversationData {
 }
 
 export interface CreateConversationInput {
-  participantIds: String[];
+  participantIds: string[];
 }

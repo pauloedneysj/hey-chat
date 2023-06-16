@@ -25,6 +25,7 @@ import { toast } from "react-hot-toast";
 import UserSearchList from "./UserSearchList";
 import Participants from "./Participants";
 import { Session } from "next-auth";
+import { useRouter } from "next/router";
 
 interface IModal {
   session: Session;
@@ -38,6 +39,9 @@ export default function ConversationModal({
   onClose,
 }: IModal) {
   const { id: currentUserId } = session.user;
+
+  const router = useRouter();
+
   const [username, setUsername] = useState("");
   const [participants, setParticipants] = useState<SearchedUser[]>([]);
   const [searchUsers, { data: searchUsersData, loading: searchUsersLoading }] =
@@ -48,14 +52,18 @@ export default function ConversationModal({
         onError: (error) => toast.error(error.message),
       }
     );
-  const [createConversation, { loading: createConversationLoading }] =
-    useMutation<CreateConversationData, CreateConversationInput>(
-      ConversationOperations.Mutations.createConversation,
-      {
-        onCompleted: () => toast.success("Created conversation successfully"),
-        onError: () => toast.error("Failed to create conversation"),
-      }
-    );
+  const [
+    createConversation,
+    { data: createCoversationData, loading: createConversationLoading },
+  ] = useMutation<CreateConversationData, CreateConversationInput>(
+    ConversationOperations.Mutations.createConversation,
+    {
+      onCompleted: (data) =>
+        data.createConversation &&
+        toast.success("Created conversation successfully"),
+      onError: (error) => toast.error(error.message),
+    }
+  );
 
   async function onSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -68,7 +76,27 @@ export default function ConversationModal({
       ...participants.map((participant) => participant.id),
     ];
 
-    await createConversation({ variables: { participantIds } });
+    try {
+      await createConversation({ variables: { participantIds } });
+
+      if (!createCoversationData?.createConversation) {
+        return toast.error("Failed to create conversation");
+      }
+
+      const { conversationId } = createCoversationData.createConversation;
+
+      router.push({ query: { conversationId } });
+
+      /*
+       * Clear state and close modal
+       * on sucessful creation
+       */
+      setParticipants([]);
+      setUsername("");
+      onClose();
+    } catch (error: any) {
+      toast.error(error?.message);
+    }
   }
 
   function addParticipant(user: SearchedUser) {
