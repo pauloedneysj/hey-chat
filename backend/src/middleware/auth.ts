@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
-import { JwtPayload } from "../util/types";
+import { JwtPayload } from "../utils/types";
+import { GraphQLError } from "graphql";
 
 export const APP_SECRET = "secret";
 
@@ -27,4 +28,14 @@ export function getUserId(authHeader: string) {
   }
 
   throw new Error("Not authenticated");
+}
+
+export function getUserIdByToken(token: string | null) {
+  if (!token) {
+    throw new GraphQLError("No token found");
+  }
+
+  const { userId } = getTokenPayload(token);
+
+  return userId;
 }

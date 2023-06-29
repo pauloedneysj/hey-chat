@@ -4,7 +4,7 @@ import {
   GraphQLContext,
   LoginResponse,
   RefreshTokenResponse,
-} from "../../util/types";
+} from "../../utils/types";
 import dayjs from "dayjs";
 import { ObjectId } from "bson";
 import { GraphQLError } from "graphql";

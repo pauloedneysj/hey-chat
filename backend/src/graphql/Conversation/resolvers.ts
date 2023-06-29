@@ -1,12 +1,39 @@
 import { GraphQLError } from "graphql";
-import { GraphQLContext } from "../../util/types";
+import {
+  ConversationCreatedSubscriptionPayload,
+  GraphQLContext,
+} from "../../utils/types";
 import { Prisma } from "@prisma/client";
 import { ObjectId } from "bson";
+import { withFilter } from "graphql-subscriptions";
 
 const resolvers = {
   Query: {
     conversations: async (_: any, __: any, context: GraphQLContext) => {
-      console.log("WORKS FINE");
+      const { prisma, userId } = context;
+
+      if (!userId) {
+        throw new GraphQLError("Not authenticated");
+      }
+
+      try {
+        const conversations = await prisma.conversation.findMany({
+          where: {
+            participants: {
+              some: {
+                userId: {
+                  equals: userId,
+                },
+              },
+            },
+          },
+          include: conversationPopulated,
+        });
+
+        return conversations;
+      } catch (error: any) {
+        throw new GraphQLError(error?.message);
+      }
     },
   },
   Mutation: {
@@ -15,7 +42,7 @@ const resolvers = {
       args: { participantIds: string[] },
       context: GraphQLContext
     ): Promise<{ conversationId: string }> => {
-      const { prisma, userId } = context;
+      const { prisma, userId, pubsub } = context;
       const { participantIds } = args;
 
       if (!userId) {
@@ -40,10 +67,41 @@ const resolvers = {
           include: conversationPopulated,
         });
 
+        pubsub.publish("CONVERSATION_CREATED", {
+          conversationCreated: conversation,
+        });
+
         return { conversationId: conversation.id };
       } catch (error: any) {
         throw new GraphQLError(error?.message);
       }
+    },
+  },
+  Subscription: {
+    conversationCreated: {
+      subscribe: withFilter(
+        (_: any, __: any, context: GraphQLContext) => {
+          const { pubsub } = context;
+
+          return pubsub.asyncIterator(["CONVERSATION_CREATED"]);
+        },
+        (
+          payload: ConversationCreatedSubscriptionPayload,
+          _: any,
+          context: GraphQLContext
+        ) => {
+          const { userId } = context;
+          const {
+            conversationCreated: { participants },
+          } = payload;
+
+          const userIsParticipant = !!participants.find(
+            (participant) => participant.userId === userId
+          );
+
+          return userIsParticipant;
+        }
+      ),
     },
   },
 };
