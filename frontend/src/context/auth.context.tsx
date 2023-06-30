@@ -1,44 +1,54 @@
 import {
-  Dispatch,
   SetStateAction,
   createContext,
-  useCallback,
   useContext,
-  useMemo,
+  useEffect,
   useState,
 } from "react";
 
-interface IAuthContextProps {
-  token: string | null;
-  setToken: Dispatch<SetStateAction<string | null>>;
-  logout: () => void;
+interface AuthContextValue {
+  isAuthenticated: boolean;
+  getToken: (value: string) => void;
+  removeToken: () => void;
 }
 
-const AuthContext = createContext<IAuthContextProps>(null as never);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export const AuthContextProvider = ({ children }: any) => {
+export function AuthProvider(props: React.PropsWithChildren<{}>) {
   const [token, setToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useCallback(() => {
-    if (token) localStorage.setItem("token", token);
+  function getToken(value: string) {
+    localStorage.setItem("graphql-token", value);
+    setToken(value);
+  }
+
+  function removeToken() {
+    localStorage.removeItem("graphql-token");
+    setToken(null);
+  }
+
+  useEffect(() => {
+    if (token) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
   }, [token]);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-  };
-
-  const value = useMemo(
-    () => ({
-      token,
-      setToken,
-      logout,
-    }),
-    [token]
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, getToken, removeToken }}>
+      {props.children}
+    </AuthContext.Provider>
   );
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+
+  return context;
+}

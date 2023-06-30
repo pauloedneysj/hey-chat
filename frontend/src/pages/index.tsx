@@ -3,41 +3,51 @@ import { NextPageContext } from "next";
 import { getSession, useSession } from "next-auth/react";
 import Auth from "../components/Auth/Auth";
 import Chat from "../components/Chat/Chat";
+import toast, { Toaster } from "react-hot-toast";
+import { useAuth } from "../context/auth.context";
+import { useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import UserOperations from "../graphql/operations/user";
 import { LoginData, LoginVariables } from "../utils/types";
-import { useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
 
 export default function SignIn() {
   const { data: session } = useSession();
+  const { isAuthenticated, getToken, removeToken } = useAuth();
 
-  const [login, { data: loginData }] = useMutation<LoginData, LoginVariables>(
+  const [login, { loading }] = useMutation<LoginData, LoginVariables>(
     UserOperations.Mutations.login,
     {
       onCompleted: (data) => {
-        const { accessToken } = data.login;
-        localStorage.setItem("graphql-token", accessToken);
+        getToken(data.login.accessToken);
       },
-      onError: (error) => toast.error(error.message),
+      onError: (error) => {
+        removeToken();
+        toast.error(error.message);
+      },
     }
   );
-
-  useEffect(() => {
-    if (session?.user && !loginData?.login) {
-      login({ variables: { userId: session.user.id } });
-    }
-  }, [login, loginData?.login, session?.user]);
 
   // TODO: this reloads the session
   function reloadSession() {}
 
+  useEffect(() => {
+    if (session?.user) {
+      login({ variables: { userId: session.user.id } });
+    }
+  }, [session, isAuthenticated]);
+
   return (
     <Box>
-      {session?.user?.username ? (
+      {session?.user.username && isAuthenticated ? (
         <Chat session={session} />
+      ) : loading ? (
+        "Carregando..."
       ) : (
-        <Auth session={session} reloadSession={reloadSession} />
+        <Auth
+          session={session}
+          reloadSession={reloadSession}
+          isAuthenticated={isAuthenticated}
+        />
       )}
       <Toaster />
     </Box>

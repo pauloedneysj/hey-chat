@@ -1,3 +1,4 @@
+import { useAuth } from "@/src/context/auth.context";
 import UserOperations from "@/src/graphql/operations/user";
 import { CreateUserData, CreateUserVariables } from "@/src/utils/types";
 import { useMutation } from "@apollo/client";
@@ -10,9 +11,14 @@ import { toast } from "react-hot-toast";
 interface IAuthProps {
   session: Session | null;
   reloadSession: () => void;
+  isAuthenticated: boolean;
 }
 
-export default function Auth({ session, reloadSession }: IAuthProps) {
+export default function Auth({
+  session,
+  reloadSession,
+  isAuthenticated,
+}: IAuthProps) {
   const [username, setUsername] = useState("");
   const [createUsername, { loading }] = useMutation<
     CreateUserData,
@@ -29,7 +35,7 @@ export default function Auth({ session, reloadSession }: IAuthProps) {
   return (
     <Center height="100vh">
       <Stack spacing={8} align="center">
-        {session ? (
+        {session && isAuthenticated ? (
           <>
             <Text fontSize="3xl">Create a username</Text>
             <Input
