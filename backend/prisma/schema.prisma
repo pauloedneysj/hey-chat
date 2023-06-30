@@ -92,6 +92,7 @@ model Message {
     id             String   @id @default(uuid()) @map("_id") @db.ObjectId
     senderId       String   @map("sender_id") @db.ObjectId
     conversationId String   @map("conversation_id") @db.ObjectId
+    body           String
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
 
