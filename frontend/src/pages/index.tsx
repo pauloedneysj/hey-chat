@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import UserOperations from "../graphql/operations/user";
 import { LoginData, LoginVariables } from "../utils/types";
+import Loading from "../components/UI/Loading/Loading";
 
 export default function SignIn() {
   const { data: session } = useSession();
@@ -41,7 +42,7 @@ export default function SignIn() {
       {session?.user.username && isAuthenticated ? (
         <Chat session={session} />
       ) : loading ? (
-        "Carregando..."
+        <Loading />
       ) : (
         <Auth
           session={session}
