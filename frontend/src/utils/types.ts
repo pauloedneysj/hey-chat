@@ -1,7 +1,10 @@
-import { ConversationPopulated } from "../../../backend/src/utils/types";
+import {
+  ConversationPopulated,
+  MessagePopulated,
+} from "../../../backend/src/utils/types";
 
-/*
- * User types
+/**
+ * User
  */
 export interface CreateUserData {
   createUsername: {
@@ -37,8 +40,8 @@ export interface SearchUsersInput {
   username: string;
 }
 
-/*
- * Conversation types
+/**
+ * Conversation
  */
 export interface CreateConversationData {
   createConversation: {
@@ -52,4 +55,15 @@ export interface CreateConversationInput {
 
 export interface ConversationsData {
   conversations: ConversationPopulated[];
+}
+
+/**
+ * Message
+ */
+export interface MessageData {
+  messages: MessagePopulated[];
+}
+
+export interface MessageVariables {
+  conversationId: string;
 }

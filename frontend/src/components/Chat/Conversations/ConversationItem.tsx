@@ -29,26 +29,25 @@ export default function ConversationItem({
 
   return (
     <Stack
+      width="100%"
       direction="row"
-      align="center"
       justify="space-between"
       p={4}
       cursor="pointer"
       borderRadius={4}
       bg={isSelected ? "whiteAlpha.200" : "none"}
       _hover={{ bg: "whiteAlpha.200" }}
-      onClick={onClick}
       position="relative"
+      onClick={onClick}
     >
-      <Flex position="absolute" left="-6px"></Flex>
       <Avatar />
-      <Flex justify="space-between" width="80%" height="100%">
-        <Flex direction="column" width="70%" height="100%">
+      <Flex justify="space-between" height="100%">
+        <Flex align="center" width={{ base: "280px", md: "120px" }}>
           <Text
             fontWeight={600}
             whiteSpace="nowrap"
-            overflow="hidden"
             textOverflow="ellipsis"
+            overflow="hidden"
           >
             {formatUsernames(conversation.participants, userId)}
           </Text>
@@ -65,17 +64,19 @@ export default function ConversationItem({
             </Box>
           )}
         </Flex>
-        <Text color="whiteAlpha.700" textAlign="right">
-          {formatRelative(new Date(conversation.updatedAt), new Date(), {
-            locale: {
-              ...enUS,
-              formatRelative: (token) =>
-                formatRelativeLocale[
-                  token as keyof typeof formatRelativeLocale
-                ],
-            },
-          })}
-        </Text>
+        <Flex align="center">
+          <Text color="whiteAlpha.700" textAlign="right">
+            {formatRelative(new Date(conversation.updatedAt), new Date(), {
+              locale: {
+                ...enUS,
+                formatRelative: (token) =>
+                  formatRelativeLocale[
+                    token as keyof typeof formatRelativeLocale
+                  ],
+              },
+            })}
+          </Text>
+        </Flex>
       </Flex>
     </Stack>
   );

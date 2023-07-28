@@ -58,10 +58,14 @@ export default function ConversationModal({
   ] = useMutation<CreateConversationData, CreateConversationInput>(
     ConversationOperations.Mutations.createConversation,
     {
-      onCompleted: (data) =>
-        data.createConversation &&
-        toast.success("Created conversation successfully"),
-      onError: (error) => toast.error(error.message),
+      onCompleted: ({ createConversation: { conversationId } }) => {
+        router.push({ query: { conversationId } });
+
+        setParticipants([]);
+        setUsername("");
+        onClose();
+      },
+      onError: ({ message }) => toast.error(message),
     }
   );
 
@@ -76,27 +80,7 @@ export default function ConversationModal({
       ...participants.map((participant) => participant.id),
     ];
 
-    try {
-      await createConversation({ variables: { participantIds } });
-
-      if (!createCoversationData?.createConversation) {
-        return toast.error("Failed to create conversation");
-      }
-
-      const { conversationId } = createCoversationData.createConversation;
-
-      router.push({ query: { conversationId } });
-
-      /*
-       * Clear state and close modal
-       * on sucessful creation
-       */
-      setParticipants([]);
-      setUsername("");
-      onClose();
-    } catch (error: any) {
-      toast.error(error?.message);
-    }
+    await createConversation({ variables: { participantIds } });
   }
 
   function addParticipant(user: SearchedUser) {
@@ -104,7 +88,9 @@ export default function ConversationModal({
   }
 
   function removeParticipant(userId: string) {
-    setParticipants((prev) => prev.filter((p) => p.id !== userId));
+    setParticipants((prev) =>
+      prev.filter((participant) => participant.id !== userId)
+    );
   }
 
   return (

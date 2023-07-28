@@ -16,22 +16,20 @@ export default function ConversationsWrapper({
   session,
 }: IConversationsWrapper) {
   const router = useRouter();
-  const {
-    query: { conversationId },
-  } = router;
+
+  const { conversationId } = router.query;
 
   const {
     data: conversationsData,
-    error: conversationsError,
     loading: conversationsLoading,
     subscribeToMore,
   } = useQuery<ConversationsData>(ConversationOperations.Queries.conversations);
 
   const conversations = useMemo(() => {
-    return conversationsData?.conversations ?? [];
+    return conversationsData?.conversations || [];
   }, [conversationsData?.conversations]);
 
-  async function onViewConversation(conversationId: string) {
+  function onViewConversation(conversationId: string) {
     router.push({ query: { conversationId } });
   }
 
@@ -52,11 +50,18 @@ export default function ConversationsWrapper({
           return previousResult;
         }
 
+        const newConversation = subscriptionData.data.conversationCreated;
+
+        if (
+          previousResult.conversations.some(
+            (conversation) => conversation.id === newConversation.id
+          )
+        ) {
+          return previousResult;
+        }
+
         return Object.assign({}, previousResult, {
-          conversations: [
-            ...previousResult.conversations,
-            subscriptionData.data.conversationCreated,
-          ],
+          conversations: [...previousResult.conversations, newConversation],
         });
       },
     });
@@ -64,7 +69,6 @@ export default function ConversationsWrapper({
 
   useEffect(() => {
     subscribeToNewConversations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -79,6 +83,7 @@ export default function ConversationsWrapper({
         session={session}
         conversations={conversations}
         onViewConversation={onViewConversation}
+        loading={conversationsLoading}
       />
     </Box>
   );
