@@ -59,7 +59,7 @@ const main = async () => {
   const corsOptions = {
     methods: ["GET", "POST", "OPTIONS"],
     origin: "*",
-    credentials: true,
+    credentials: false,
   };
 
   await server.start();
