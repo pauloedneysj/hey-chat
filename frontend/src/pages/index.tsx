@@ -15,7 +15,7 @@ export default function SignIn() {
   const { data: session } = useSession();
   const { isAuthenticated, getToken, removeToken } = useAuth();
 
-  const [login, { loading }] = useMutation<LoginData, LoginVariables>(
+  const [login] = useMutation<LoginData, LoginVariables>(
     UserOperations.Mutations.login,
     {
       onCompleted: ({ login: { accessToken } }) => {
@@ -41,13 +41,9 @@ export default function SignIn() {
     }
   }, [session, isAuthenticated]);
 
-  if (loading) return <Loading />;
-
   return (
     <Box>
-      {loading ? (
-        <Loading />
-      ) : session?.user.username && isAuthenticated ? (
+      {session?.user.username && isAuthenticated ? (
         <Chat session={session} />
       ) : (
         <Auth
