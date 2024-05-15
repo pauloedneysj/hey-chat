@@ -11,7 +11,7 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient } from "graphql-ws";
 
 const httpLink = new HttpLink({
-  uri: "http://localhost:4000/graphql",
+  uri: process.env.API_URL,
   credentials: "include",
 });
 
@@ -19,7 +19,7 @@ const wsLink =
   typeof window !== "undefined"
     ? new GraphQLWsLink(
         createClient({
-          url: "ws://localhost:4000/graphql/subscriptions",
+          url: process.env.API_WS_URL as string,
           connectionParams: async () => ({
             token: localStorage.getItem("graphql-token"),
           }),
