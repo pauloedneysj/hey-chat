@@ -58,8 +58,8 @@ const main = async () => {
 
   const corsOptions = {
     methods: ["GET", "POST", "OPTIONS"],
-    origin: "*",
-    credentials: false,
+    origin: process.env.BASE_URL,
+    credentials: true,
   };
 
   await server.start();
