@@ -1,6 +1,7 @@
 import {
   ConversationPopulated,
   MessagePopulated,
+  ParticipantPopulated,
 } from "../../../backend/src/utils/types";
 
 /**
@@ -51,10 +52,43 @@ export interface CreateConversationData {
 
 export interface CreateConversationInput {
   participantIds: string[];
+  conversationName?: string;
 }
 
 export interface ConversationsData {
   conversations: ConversationPopulated[];
+}
+
+export interface ConversationUpdatedData {
+  conversationUpdated: {
+    conversation: Omit<ConversationPopulated, "latestMessage"> & {
+      latestMessage: MessagePopulated;
+    };
+    addedUserIds: Array<string> | null;
+    removedUserIds: Array<string> | null;
+  };
+}
+
+export interface ConversationDeletedData {
+  conversationDeleted: {
+    id: string;
+  };
+}
+
+export interface lastSeenUpdatedData {
+  lastSeenUpdated: {
+    participants: ParticipantPopulated[];
+  };
+}
+
+export interface UpdateLastSeenResponse {
+  updateLastSeen: {
+    success?: boolean;
+  };
+}
+
+export interface UpdateLastSeenArgs {
+  lastSeen: Date;
 }
 
 /**
@@ -66,4 +100,12 @@ export interface MessageData {
 
 export interface MessageVariables {
   conversationId: string;
+}
+
+export interface MessageSubscriptionData {
+  subscriptionData: {
+    data: {
+      messageSent: MessagePopulated;
+    };
+  };
 }

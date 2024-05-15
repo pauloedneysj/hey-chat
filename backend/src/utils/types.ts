@@ -58,11 +58,30 @@ export interface ConversationCreatedSubscriptionPayload {
   conversationCreated: ConversationPopulated;
 }
 
+export interface ConversationUpdatedSubscriptionPayload {
+  conversationUpdated: {
+    conversation: ConversationPopulated;
+    addedUserIds: Array<string>;
+    removedUserIds: Array<string>;
+  };
+}
+
+export interface ConversationDeletedSubscriptionPayload {
+  conversationDeleted: ConversationPopulated;
+}
+
+export interface LastSeenUpdatedSubscriptionPayload {
+  lastSeenUpdated: ParticipantPopulated[];
+}
+
+export interface UpdateLastSeenResponse {
+  success?: boolean;
+}
+
 /**
  * Messages
  */
 export interface SendMessageArgs {
-  id: string;
   conversationId: string;
   senderId: string;
   body: string;

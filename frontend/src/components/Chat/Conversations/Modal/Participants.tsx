@@ -12,7 +12,7 @@ export default function Participants({
   removeParticipant,
 }: IParticipants) {
   return (
-    <Flex mt={8} gap="10px" flexWrap="wrap">
+    <Flex gap="10px" flexWrap="wrap">
       {participants.map((participant) => (
         <Stack
           key={participant.id}

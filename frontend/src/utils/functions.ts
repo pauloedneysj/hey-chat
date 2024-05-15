@@ -1,4 +1,5 @@
 import { ParticipantPopulated } from "../../../backend/src/utils/types";
+import { differenceInSeconds } from "date-fns";
 
 export const formatUsernames = (
   participants: Array<ParticipantPopulated>,
@@ -9,4 +10,10 @@ export const formatUsernames = (
     .map((participant) => participant.user.username);
 
   return usernames.join(", ");
+};
+
+export const userIsOnline = (lastSeen: string) => {
+  const now = new Date();
+  const diffInSeconds = differenceInSeconds(new Date(lastSeen), now);
+  return Math.abs(diffInSeconds) <= 60;
 };

@@ -1,11 +1,13 @@
 import { useQuery } from "@apollo/client";
-import { Button, Stack, Text } from "@chakra-ui/react";
+import { Button, Flex, Stack, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React from "react";
 import ConversationOperations from "../../../../graphql/operations/conversation";
 import { formatUsernames } from "../../../../utils/functions";
 import { ConversationsData } from "../../../../utils/types";
-// import SkeletonLoader from "../../../common/SkeletonLoader";
+import SkeletonLoader from "../../../common/SkeletonLoader";
+import { IoClose } from "react-icons/io5";
+import { useConversation } from "@/src/context/conversation.context";
 
 interface IMessagesHeader {
   userId: string;
@@ -16,7 +18,7 @@ export default function MessagesHeader({
   userId,
   conversationId,
 }: IMessagesHeader) {
-  const router = useRouter();
+  const { setConversationId } = useConversation();
   const { data, loading } = useQuery<ConversationsData>(
     ConversationOperations.Queries.conversations
   );
@@ -26,11 +28,12 @@ export default function MessagesHeader({
   );
 
   if (data?.conversations && !loading && !conversation) {
-    router.replace(process.env.NEXT_PUBLIC_BASE_URL as string);
+    setConversationId(undefined);
   }
 
   return (
     <Stack
+      justify="space-between"
       direction="row"
       align="center"
       spacing={6}
@@ -39,17 +42,7 @@ export default function MessagesHeader({
       borderBottom="1px solid"
       borderColor="whiteAlpha.200"
     >
-      <Button
-        display={{ md: "none" }}
-        onClick={() =>
-          router.replace("?conversationId", "/", {
-            shallow: true,
-          })
-        }
-      >
-        Back
-      </Button>
-      {/* {loading && <SkeletonLoader count={1} height="30px" width="320px" />} */}
+      {loading && <SkeletonLoader count={1} height="30px" width="320px" />}
       {!conversation && !loading && <Text>Conversation Not Found</Text>}
       {conversation && (
         <Stack direction="row">
@@ -59,6 +52,19 @@ export default function MessagesHeader({
           </Text>
         </Stack>
       )}
+      <Button
+        display={{ md: "none" }}
+        onClick={() => setConversationId(undefined)}
+      >
+        Back
+      </Button>
+      <Flex display={{ base: "none", md: "flex" }}>
+        <IoClose
+          size={24}
+          cursor="pointer"
+          onClick={() => setConversationId(undefined)}
+        />
+      </Flex>
     </Stack>
   );
 }

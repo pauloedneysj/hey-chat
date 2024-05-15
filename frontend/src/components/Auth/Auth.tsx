@@ -35,7 +35,7 @@ export default function Auth({
   return (
     <Center height="100vh">
       <Stack spacing={8} align="center">
-        {session && isAuthenticated ? (
+        {!session?.user.username && isAuthenticated ? (
           <>
             <Text fontSize="3xl">Create a username</Text>
             <Input

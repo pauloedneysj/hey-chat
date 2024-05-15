@@ -1,9 +1,15 @@
-import { Avatar, Box, Flex, Stack, Text } from "@chakra-ui/react";
-import { ConversationPopulated } from "../../../../../backend/src/utils/types";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { formatUsernames } from "@/src/utils/functions";
+import { Avatar, Flex, Stack, Text } from "@chakra-ui/react";
 import { formatRelative } from "date-fns";
 import { enUS } from "date-fns/locale";
-import { useRouter } from "next/router";
+import { ConversationPopulated } from "../../../../../backend/src/utils/types";
+import { useConversation } from "@/src/context/conversation.context";
 
 const formatRelativeLocale = {
   lastWeek: "eeee",
@@ -17,6 +23,7 @@ interface IConversationItem {
   conversation: ConversationPopulated;
   onClick: () => void;
   isSelected: boolean;
+  hasSeenLatestMessage: boolean | undefined;
 }
 
 export default function ConversationItem({
@@ -24,60 +31,85 @@ export default function ConversationItem({
   onClick,
   isSelected,
   userId,
+  hasSeenLatestMessage,
 }: IConversationItem) {
-  const router = useRouter();
+  const { conversationId } = useConversation();
 
   return (
-    <Stack
-      width="100%"
-      direction="row"
-      justify="space-between"
-      p={4}
-      cursor="pointer"
-      borderRadius={4}
-      bg={isSelected ? "whiteAlpha.200" : "none"}
-      _hover={{ bg: "whiteAlpha.200" }}
-      position="relative"
-      onClick={onClick}
-    >
-      <Avatar />
-      <Flex justify="space-between" height="100%">
-        <Flex align="center" width={{ base: "280px", md: "120px" }}>
-          <Text
-            fontWeight={600}
-            whiteSpace="nowrap"
-            textOverflow="ellipsis"
-            overflow="hidden"
+    <>
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <Stack
+            position="relative"
+            direction="row"
+            justify="center"
+            p={4}
+            spacing={4}
+            borderRadius={4}
+            cursor="pointer"
+            bg={isSelected ? "whiteAlpha.200" : "none"}
+            _hover={{ bg: "whiteAlpha.200" }}
+            onClick={onClick}
           >
-            {formatUsernames(conversation.participants, userId)}
-          </Text>
-          {conversation.latestMessage && (
-            <Box width="140%">
+            {hasSeenLatestMessage === false &&
+              conversationId !== conversation.id && (
+                <Flex position="absolute" left={0} top={"45%"} ml={1}>
+                  <Flex
+                    width={2}
+                    height={2}
+                    backgroundColor="#6b46c1"
+                    borderRadius="full"
+                  />
+                </Flex>
+              )}
+            <Avatar />
+            <Flex direction="column" width="75%">
+              <Flex justify="space-between">
+                <Text
+                  fontWeight={600}
+                  whiteSpace="nowrap"
+                  textOverflow="ellipsis"
+                  overflow="hidden"
+                  title={
+                    conversation.name ??
+                    formatUsernames(conversation.participants, userId)
+                  }
+                >
+                  {conversation.name ??
+                    formatUsernames(conversation.participants, userId)}
+                </Text>
+                <Text color="whiteAlpha.700" textAlign="right">
+                  {formatRelative(
+                    new Date(conversation.updatedAt),
+                    new Date(),
+                    {
+                      locale: {
+                        ...enUS,
+                        formatRelative: (token) =>
+                          formatRelativeLocale[
+                            token as keyof typeof formatRelativeLocale
+                          ],
+                      },
+                    }
+                  )}
+                </Text>
+              </Flex>
               <Text
-                color="whiteAlpha.700"
+                // color="whiteAlpha.700"
                 whiteSpace="nowrap"
-                overflow="hidden"
                 textOverflow="ellipsis"
+                overflow="hidden"
               >
-                {conversation.latestMessage.body}
+                {conversation.latestMessage?.body}
               </Text>
-            </Box>
-          )}
-        </Flex>
-        <Flex align="center">
-          <Text color="whiteAlpha.700" textAlign="right">
-            {formatRelative(new Date(conversation.updatedAt), new Date(), {
-              locale: {
-                ...enUS,
-                formatRelative: (token) =>
-                  formatRelativeLocale[
-                    token as keyof typeof formatRelativeLocale
-                  ],
-              },
-            })}
-          </Text>
-        </Flex>
-      </Flex>
-    </Stack>
+            </Flex>
+          </Stack>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>Edit</ContextMenuItem>
+          <ContextMenuItem>Delete</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </>
   );
 }

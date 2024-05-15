@@ -26,6 +26,7 @@ import UserSearchList from "./UserSearchList";
 import Participants from "./Participants";
 import { Session } from "next-auth";
 import { useRouter } from "next/router";
+import { useConversation } from "@/src/context/conversation.context";
 
 interface IModal {
   session: Session;
@@ -40,10 +41,14 @@ export default function ConversationModal({
 }: IModal) {
   const { id: currentUserId } = session.user;
 
-  const router = useRouter();
+  const { setConversationId } = useConversation();
 
+  const [conversationName, setConversationName] = useState<string | undefined>(
+    undefined
+  );
   const [username, setUsername] = useState("");
   const [participants, setParticipants] = useState<SearchedUser[]>([]);
+
   const [searchUsers, { data: searchUsersData, loading: searchUsersLoading }] =
     useLazyQuery<SearchUsersData, SearchUsersInput>(
       UserOperations.Queries.searchUsers,
@@ -52,22 +57,21 @@ export default function ConversationModal({
         onError: (error) => toast.error(error.message),
       }
     );
-  const [
-    createConversation,
-    { data: createCoversationData, loading: createConversationLoading },
-  ] = useMutation<CreateConversationData, CreateConversationInput>(
-    ConversationOperations.Mutations.createConversation,
-    {
-      onCompleted: ({ createConversation: { conversationId } }) => {
-        router.push({ query: { conversationId } });
 
-        setParticipants([]);
-        setUsername("");
-        onClose();
-      },
-      onError: ({ message }) => toast.error(message),
-    }
-  );
+  const [createConversation, { loading: createConversationLoading }] =
+    useMutation<CreateConversationData, CreateConversationInput>(
+      ConversationOperations.Mutations.createConversation,
+      {
+        onCompleted: ({ createConversation: { conversationId } }) => {
+          setConversationId(conversationId);
+          setParticipants([]);
+          setConversationName(undefined);
+          setUsername("");
+          onClose();
+        },
+        onError: ({ message }) => toast.error(message),
+      }
+    );
 
   async function onSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -80,7 +84,9 @@ export default function ConversationModal({
       ...participants.map((participant) => participant.id),
     ];
 
-    await createConversation({ variables: { participantIds } });
+    await createConversation({
+      variables: { participantIds, conversationName },
+    });
   }
 
   function addParticipant(user: SearchedUser) {
@@ -91,6 +97,10 @@ export default function ConversationModal({
     setParticipants((prev) =>
       prev.filter((participant) => participant.id !== userId)
     );
+  }
+
+  function participantAlreadyAdded(userId: string): boolean {
+    return participants.some((participant) => participant.id === userId);
   }
 
   return (
@@ -116,6 +126,7 @@ export default function ConversationModal({
               <UserSearchList
                 searchedUsers={searchUsersData?.searchUsers}
                 addParticipant={addParticipant}
+                participantAlreadyAdded={participantAlreadyAdded}
               />
               {participants.length !== 0 && (
                 <>
@@ -123,15 +134,35 @@ export default function ConversationModal({
                     participants={participants}
                     removeParticipant={removeParticipant}
                   />
-                  <Button
-                    colorScheme="blue"
-                    mt={6}
-                    onClick={onCreateConversation}
-                    isLoading={createConversationLoading}
-                    isDisabled={participants.length === 0}
-                  >
-                    Create a conversation
-                  </Button>
+                  {participants.length >= 2 && (
+                    <Input
+                      placeholder="Enter a conversation name"
+                      onChange={(event) =>
+                        setConversationName(event.target.value)
+                      }
+                    />
+                  )}
+                  {participants.length >= 2 ? (
+                    <Button
+                      colorScheme="blue"
+                      mt={6}
+                      onClick={onCreateConversation}
+                      isLoading={createConversationLoading}
+                      isDisabled={!conversationName}
+                    >
+                      Create a conversation
+                    </Button>
+                  ) : (
+                    <Button
+                      colorScheme="blue"
+                      mt={6}
+                      onClick={onCreateConversation}
+                      isLoading={createConversationLoading}
+                      isDisabled={participants.length === 0}
+                    >
+                      Create a conversation
+                    </Button>
+                  )}
                 </>
               )}
             </Stack>

@@ -28,7 +28,6 @@ const UserOperations = {
       }
     `,
   },
-  // TODO: Subscription: {},
 };
 
 export default UserOperations;

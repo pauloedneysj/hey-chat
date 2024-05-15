@@ -2,13 +2,14 @@ import { GraphQLError } from "graphql";
 import {
   GraphQLContext,
   MessagePopulated,
-  MessageSentSubscriptionPayload,
   SendMessageArgs,
+  MessageSentSubscriptionPayload,
 } from "../../utils/types";
 import { Prisma } from "@prisma/client";
 import { withFilter } from "graphql-subscriptions";
 import { userIsConversationParticipant } from "../../utils/functions";
 import { conversationPopulated } from "../Conversation/resolvers";
+import { ObjectId } from "bson";
 
 const resolvers = {
   Query: {
@@ -55,8 +56,7 @@ const resolvers = {
           },
         });
 
-        return [{ body: "Hello, Guga!" } as MessagePopulated];
-        // return messages;
+        return messages;
       } catch (error: any) {
         throw new GraphQLError(error?.message);
       }
@@ -69,11 +69,13 @@ const resolvers = {
       context: GraphQLContext
     ): Promise<boolean> => {
       const { prisma, pubsub, userId } = context;
-      const { id: messageId, conversationId, senderId, body } = args;
+      const { conversationId, senderId, body } = args;
 
       if (!userId || userId !== senderId) {
         throw new GraphQLError("Not authenticated");
       }
+
+      const messageId = new ObjectId().toString();
 
       try {
         const newMessage = await prisma.message.create({
@@ -86,6 +88,17 @@ const resolvers = {
           include: messagePopulated,
         });
 
+        const participant = await prisma.conversationParticipant.findFirst({
+          where: {
+            userId,
+            conversationId,
+          },
+        });
+
+        if (!participant) {
+          throw new GraphQLError("Participant does not exist");
+        }
+
         const conversation = await prisma.conversation.update({
           where: {
             id: conversationId,
@@ -95,7 +108,7 @@ const resolvers = {
             participants: {
               update: {
                 where: {
-                  id: senderId,
+                  id: participant?.id,
                 },
                 data: {
                   hasSeenLatestMessage: true,
@@ -104,7 +117,7 @@ const resolvers = {
               updateMany: {
                 where: {
                   NOT: {
-                    userId: senderId,
+                    userId,
                   },
                 },
                 data: {
@@ -113,11 +126,14 @@ const resolvers = {
               },
             },
           },
+          include: conversationPopulated,
         });
 
         pubsub.publish("MESSAGE_SENT", { messageSent: newMessage });
-        pubsub.publish("CONVERSATION_UPDATE", {
-          conversationUpdated: { conversation },
+        pubsub.publish("CONVERSATION_UPDATED", {
+          conversationUpdated: {
+            conversation,
+          },
         });
       } catch (error: any) {
         throw new GraphQLError(error?.message);
@@ -127,20 +143,21 @@ const resolvers = {
     },
   },
   Subscription: {
-    messageSent: withFilter(
-      (_: any, __: any, context: GraphQLContext) => {
-        const { pubsub } = context;
-
-        return pubsub.asyncIterator(["MESSAGE_SENT"]);
-      },
-      (
-        payload: MessageSentSubscriptionPayload,
-        args: { conversationId: string },
-        _: any
-      ) => {
-        return payload.messageSent.conversationId === args.conversationId;
-      }
-    ),
+    messageSent: {
+      subscribe: withFilter(
+        (_: any, __: any, context: GraphQLContext) => {
+          const { pubsub } = context;
+          return pubsub.asyncIterator(["MESSAGE_SENT"]);
+        },
+        (
+          payload: MessageSentSubscriptionPayload,
+          args: { conversationId: string },
+          context: GraphQLContext
+        ) => {
+          return payload.messageSent.conversationId === args.conversationId;
+        }
+      ),
+    },
   },
 };
 

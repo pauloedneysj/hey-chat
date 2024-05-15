@@ -1,24 +1,22 @@
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-import express from "express";
-import http from "http";
-import cors from "cors";
-import { json } from "body-parser";
-import typeDefs from "./graphql/typeDefs";
-import resolvers from "./graphql/resolvers";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { GraphQLContext, SubscriptionContext } from "./utils/types";
-import * as dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
-import { getUserId, getUserIdByToken } from "./middleware/auth";
-import { WebSocketServer } from "ws";
-import { useServer } from "graphql-ws/lib/use/ws";
+import { json } from "body-parser";
+import cors from "cors";
+import "dotenv/config";
+import express from "express";
 import { PubSub } from "graphql-subscriptions";
+import { useServer } from "graphql-ws/lib/use/ws";
+import http from "http";
+import { WebSocketServer } from "ws";
+import resolvers from "./graphql/resolvers";
+import typeDefs from "./graphql/typeDefs";
+import { getUserId, getUserIdByToken } from "./middleware/auth";
+import { GraphQLContext, SubscriptionContext } from "./utils/types";
 
 const main = async () => {
-  dotenv.config();
-
   const prisma = new PrismaClient();
   const pubsub = new PubSub();
 
@@ -39,14 +37,14 @@ const main = async () => {
     {
       schema,
       context: async (ctx: SubscriptionContext): Promise<GraphQLContext> => {
-        if (ctx.connectionParams && ctx.connectionParams.token) {
+        if (ctx.connectionParams.token) {
           const { token } = ctx.connectionParams;
           const userId = getUserIdByToken(token);
 
           return { prisma, userId, pubsub };
+        } else {
+          throw new Error("Unauthorized");
         }
-
-        return { prisma, userId: null, pubsub };
       },
     },
     wsServer

@@ -68,6 +68,7 @@ model RefreshToken {
 model Conversation {
     id              String   @id @default(uuid()) @map("_id") @db.ObjectId
     latestMessageId String   @unique @map("latest_message_id") @db.ObjectId
+    name            String?
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
 
@@ -77,12 +78,13 @@ model Conversation {
 }
 
 model ConversationParticipant {
-    id                   String   @id @default(uuid()) @map("_id") @db.ObjectId
-    userId               String   @map("user_id") @db.ObjectId
-    conversationId       String   @map("conversation_id") @db.ObjectId
+    id                   String    @id @default(uuid()) @map("_id") @db.ObjectId
+    userId               String    @map("user_id") @db.ObjectId
+    conversationId       String    @map("conversation_id") @db.ObjectId
     hasSeenLatestMessage Boolean
-    createdAt            DateTime @default(now())
-    updatedAt            DateTime @updatedAt
+    lastSeen             DateTime?
+    createdAt            DateTime  @default(now())
+    updatedAt            DateTime  @updatedAt
 
     user         User         @relation(fields: [userId], references: [id])
     conversation Conversation @relation(fields: [conversationId], references: [id])

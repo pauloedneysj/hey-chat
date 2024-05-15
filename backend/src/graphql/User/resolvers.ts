@@ -4,11 +4,13 @@ import {
   GraphQLContext,
   LoginResponse,
   RefreshTokenResponse,
+  UpdateLastSeenResponse,
 } from "../../utils/types";
 import dayjs from "dayjs";
 import { ObjectId } from "bson";
 import { GraphQLError } from "graphql";
 import { User } from "@prisma/client";
+import { withFilter } from "graphql-subscriptions";
 
 const resolvers = {
   Query: {
@@ -166,7 +168,6 @@ const resolvers = {
       }
     },
   },
-  // TODO: Subscription: {},
 };
 
 export default resolvers;
