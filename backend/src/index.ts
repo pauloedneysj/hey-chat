@@ -54,6 +54,8 @@ const main = async () => {
     schema,
     csrfPrevention: true,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    introspection: true,
+    playground: true,
   });
 
   const corsOptions = {
