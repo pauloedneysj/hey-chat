@@ -1,26 +1,23 @@
 import { useConversation } from "@/src/context/conversation.context";
 import ConversationOperations from "@/src/graphql/operations/conversation";
+import MessageOperations from "@/src/graphql/operations/message";
+import { userIsOnline } from "@/src/utils/functions";
 import {
   ConversationDeletedData,
+  ConversationPopulated,
   ConversationsData,
   ConversationUpdatedData,
   lastSeenUpdatedData,
   MessageData,
+  ParticipantPopulated,
   UpdateLastSeenArgs,
   UpdateLastSeenResponse,
 } from "@/src/utils/types";
 import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Box } from "@chakra-ui/react";
 import { Session } from "next-auth";
-import { useEffect, useMemo, useState } from "react";
-import {
-  ConversationPopulated,
-  ParticipantPopulated,
-} from "../../../../../backend/src/utils/types";
+import { useEffect, useState } from "react";
 import ConversationList from "./ConversationList";
-import { userIsOnline } from "@/src/utils/functions";
-import toast from "react-hot-toast";
-import MessageOperations from "@/src/graphql/operations/message";
 
 interface IConversationsWrapper {
   session: Session;

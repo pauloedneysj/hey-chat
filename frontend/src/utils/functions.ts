@@ -1,8 +1,8 @@
-import { ParticipantPopulated } from "../../../backend/src/utils/types";
 import { differenceInSeconds } from "date-fns";
+import { ParticipantPopulated } from "./types";
 
 export const formatUsernames = (
-  participants: Array<ParticipantPopulated>,
+  participants: ParticipantPopulated[],
   myUserId: string
 ): string => {
   const usernames = participants

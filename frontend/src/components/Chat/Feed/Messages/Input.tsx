@@ -4,8 +4,7 @@ import { Box, Flex, FormControl, IconButton, Input } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import { SendMessageArgs } from "../../../../../../backend/src/utils/types";
-import { MessageData } from "@/src/utils/types";
+import { MessageData, SendMessageArgs } from "@/src/utils/types";
 import { IoMdSend } from "react-icons/io";
 
 interface IMessageInput {

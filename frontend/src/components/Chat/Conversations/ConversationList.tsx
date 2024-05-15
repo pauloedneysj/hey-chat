@@ -1,7 +1,6 @@
 import { Avatar, Box, Flex, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { useEffect, useState } from "react";
-import { ConversationPopulated } from "../../../../../backend/src/utils/types";
 import SkeletonLoader from "../../common/SkeletonLoader";
 import ConversationItem from "./ConversationItem";
 import ConversationModal from "./Modal/Modal";
@@ -10,7 +9,7 @@ import { signOut } from "next-auth/react";
 import { CiSearch } from "react-icons/ci";
 import { LuLogOut } from "react-icons/lu";
 import { compareDesc } from "date-fns";
-import { title } from "process";
+import { ConversationPopulated } from "@/src/utils/types";
 
 interface IConversationList {
   session: Session;

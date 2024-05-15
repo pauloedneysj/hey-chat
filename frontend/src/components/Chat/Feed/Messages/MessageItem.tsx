@@ -1,5 +1,5 @@
+import { MessagePopulated } from "@/src/utils/types";
 import { Avatar, Box, Flex, Stack, Text } from "@chakra-ui/react";
-import { MessagePopulated } from "../../../../../../backend/src/utils/types";
 
 interface IMessageItem {
   message: MessagePopulated;

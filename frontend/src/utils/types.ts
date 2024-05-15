@@ -1,8 +1,39 @@
-import {
-  ConversationPopulated,
-  MessagePopulated,
-  ParticipantPopulated,
-} from "../../../backend/src/utils/types";
+import { Prisma } from "@prisma/client";
+
+const participantPopulated =
+  Prisma.validator<Prisma.ConversationParticipantInclude>()({
+    user: {
+      select: {
+        id: true,
+        username: true,
+      },
+    },
+  });
+
+const conversationPopulated = Prisma.validator<Prisma.ConversationInclude>()({
+  participants: {
+    include: participantPopulated,
+  },
+  latestMessage: {
+    include: {
+      sender: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  },
+});
+
+const messagePopulated = Prisma.validator<Prisma.MessageInclude>()({
+  sender: {
+    select: {
+      id: true,
+      username: true,
+    },
+  },
+});
 
 /**
  * User
@@ -75,6 +106,14 @@ export interface ConversationDeletedData {
   };
 }
 
+export type ConversationPopulated = Prisma.ConversationGetPayload<{
+  include: typeof conversationPopulated;
+}>;
+
+export type ParticipantPopulated = Prisma.ConversationParticipantGetPayload<{
+  include: typeof participantPopulated;
+}>;
+
 export interface lastSeenUpdatedData {
   lastSeenUpdated: {
     participants: ParticipantPopulated[];
@@ -108,4 +147,14 @@ export interface MessageSubscriptionData {
       messageSent: MessagePopulated;
     };
   };
+}
+
+export type MessagePopulated = Prisma.MessageGetPayload<{
+  include: typeof messagePopulated;
+}>;
+
+export interface SendMessageArgs {
+  conversationId: string;
+  senderId: string;
+  body: string;
 }

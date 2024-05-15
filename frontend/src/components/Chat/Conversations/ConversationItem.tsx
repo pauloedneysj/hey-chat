@@ -4,12 +4,12 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { useConversation } from "@/src/context/conversation.context";
 import { formatUsernames } from "@/src/utils/functions";
+import { ConversationPopulated } from "@/src/utils/types";
 import { Avatar, Flex, Stack, Text } from "@chakra-ui/react";
 import { formatRelative } from "date-fns";
 import { enUS } from "date-fns/locale";
-import { ConversationPopulated } from "../../../../../backend/src/utils/types";
-import { useConversation } from "@/src/context/conversation.context";
 
 const formatRelativeLocale = {
   lastWeek: "eeee",
